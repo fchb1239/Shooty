@@ -3,6 +3,8 @@
 #include <windows.h>
 #include <stdio.h>
 #include <cstdlib>
+#include <thread>
+#include <chrono>
 
 using namespace::std;
 
@@ -13,7 +15,7 @@ bool rightOnce = false;
 bool shootOnce = false;
 
 bool shooting;
-int shoot[50];
+int shootY[50];
 int shootX[50];
 
 int lastShootIndex;
@@ -38,8 +40,8 @@ void draw(string frame, int x, int y) {
 
 void handleShoot() {
     shooting = true;
-    shoot[lastShootIndex] = 20;
-    shootX[lastShootIndex] = moves;
+    shootY[lastShootIndex] = 20;
+    shootX[lastShootIndex] = moves + 1;
     lastShootIndex++;
     if (lastShootIndex > 50)
         lastShootIndex = 0;
@@ -47,15 +49,18 @@ void handleShoot() {
 
 void update() {
     // Clears screen
-    system("CLS");
+    //system("CLS");
 
     // Hit counter
     draw("Hits: " + to_string(hits), 0, 0);
 
     // Player
-    if (moves < 2)
+    string player = " <-#-> ";
+    if (moves < 2) {
         moves = 2;
-    draw("<-#->", moves - 2, 20);
+        player = "<-#-> ";
+    }
+    draw(player, moves - 2, 20);
 
     // Astroids
     for (int a = 0; a < 20; a++) {
@@ -65,19 +70,25 @@ void update() {
     // Shooting and hit detection
     if (shooting) {
         for (int i = 0; i < 50; i++) {
-            if (shoot[i] > 0) {
-                shoot[i]--;
-                draw("|", shootX[i], shoot[i]);
+            if (shootY[i] > 0) {
+                shootY[i]--;
+                draw("|", shootX[i], shootY[i]);
+                if(shootY[i] != 19)
+                    draw(" ", shootX[i], shootY[i] + 1);
                 for (int j = 0; j < 20; j++) {
-                    if (shoot[i] == astroidY[j] && shootX[i] == astroidX[j]) {
+                    if (shootY[i] == astroidY[j] && shootX[i] == astroidX[j]) {
+                        draw(" ", astroidX[i], astroidY[j]);
+                        draw(" ", shootX[i], shootY[i]);
                         astroidX[j] = rand() % 100 + 2;
                         astroidY[j] = rand() % 13 + 1;
-                        shoot[i] = 0;
+                        shootY[i] = 0;
                         hits++;
                     }
                 }
-                if (shoot[i] < 2)
-                    shoot[i] = 0;
+                if (shootY[i] < 2) {
+                    draw(" ", shootX[i], shootY[i]);
+                    shootY[i] = 0;
+                }
             }
         }
     }
@@ -165,8 +176,12 @@ int main()
         astroidY[i] = rand() % 13 + 1;
     }
 
+    // Clears screen
+    system("CLS");
+
     // Calls update as much as possible
     while (true) {
+        this_thread::sleep_for(chrono::microseconds(10000));
         handleKeys();
         update();
     }
