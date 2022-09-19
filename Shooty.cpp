@@ -218,7 +218,7 @@ void start() {
     SetConsoleTitleA("Shooty");
     // Title screen
     cout << " ____          ____\n|    | Shooty |    |\n|    |        |    |\n|    | Press  |    |\n|    | Enter  |    |\n|    |        |    |";
-    cout << "\nHighscore: " << highscore;
+    cout << "\nHigh score: " << highscore;
     if (hits > 0) {
         cout << "\nLast score: " << hits;
     }
