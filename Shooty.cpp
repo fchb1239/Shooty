@@ -1,10 +1,12 @@
 #include <iostream>
+#include <fstream>
 #include <sstream>
-#include <windows.h>
-#include <stdio.h>
 #include <cstdlib>
 #include <thread>
 #include <chrono>
+#include <windows.h>
+#include <stdio.h>
+#include <string>
 
 using namespace::std;
 
@@ -23,7 +25,13 @@ int lastShootIndex;
 int astroidX[20];
 int astroidY[20];
 
-int hits;
+int hits = 0;
+
+int played = 0;
+
+bool running = false;
+
+void start();
 
 void coord(int x, int y)
 {
@@ -51,8 +59,38 @@ void update() {
     // Clears screen
     //system("CLS");
 
+    played++;
+
+    // 1500
+
+    if (played >= 1500) {
+        ifstream highscoresave("shooty_highscore");
+        string highscore = "0";
+        getline(highscoresave, highscore);
+        highscoresave.close();
+        if (stoi(highscore) < hits) {
+
+            ofstream highscoresavenew("shooty_highscore");
+            highscoresavenew << hits;
+            highscoresavenew.close();
+        }
+        start();
+    }
+
     // Hit counter
     draw("Hits: " + to_string(hits), 0, 0);
+    
+    string amounter = "";
+
+    //Time counter
+    for (int i = 0; i < 50; i++)
+        amounter += "-";
+    
+    for (int j = 0; j < played / 30; j++) {
+        amounter[j] = '#';
+    }
+
+    draw(amounter, (" Hits: " + to_string(hits)).length(), 0);
 
     // Player
     string player = " <-#-> ";
@@ -95,6 +133,8 @@ void update() {
 
     // Moves the while line thingy to 0, 0 so it doesn't get in the way of the gameplay
     draw("", 0, 0);
+
+    //cout << played;
 }
 
 
@@ -162,15 +202,44 @@ void handleKeys() {
     }
 }
 
-int main()
-{
+void start() {
+    running = false;
+    // Clears screen
+    system("CLS");
+    cin.clear();
+
+    // Idk what I'm doing lol
+    ifstream highscoresave("shooty_highscore");
+    string highscore = "0";
+    getline(highscoresave, highscore);
+    highscoresave.close();
+
     // Sets console title
     SetConsoleTitleA("Shooty");
     // Title screen
     cout << " ____          ____\n|    | Shooty |    |\n|    |        |    |\n|    | Press  |    |\n|    | Enter  |    |\n|    |        |    |";
-    // Checks if a key is pressed
-    cin.get();
+    cout << "\nHighscore: " << highscore;
+    if (hits > 0) {
+        cout << "\nLast score: " << hits;
+    }
 
+    int i = 0;
+    while (i < 10)
+    {
+        this_thread::sleep_for(chrono::microseconds(100000));
+        i++;
+    }
+
+    // Checks if enter is pressed
+    cin.clear();
+    bool pressedCorrectStart = false;
+    while (!pressedCorrectStart) {
+        if (cin.get() == '\n') {
+            pressedCorrectStart = true;
+        }
+    }
+
+    // Sets astroid positions
     for (int i = 0; i < 20; i++) {
         astroidX[i] = rand() % 100 + 2;
         astroidY[i] = rand() % 13 + 1;
@@ -179,10 +248,19 @@ int main()
     // Clears screen
     system("CLS");
 
+    running = true;
+    hits = 0;
+    played = 0;
+
     // Calls update as much as possible
-    while (true) {
+    while (running) {
         this_thread::sleep_for(chrono::microseconds(10000));
         handleKeys();
         update();
     }
+}
+
+int main()
+{
+    start();
 }
